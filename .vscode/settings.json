@@ -1,6 +1,8 @@
 {
     "java.configuration.updateBuildConfiguration": "disabled",
-    "dart.flutterSdkPath": "D:/flutter/flutter3.24.4",
+    // "dart.flutterSdkPath": "D:/flutter/flutter3.24.4",
+    "dart.flutterSdkPath": "D:/flutter/flutter3.35.1",
+    "codium.codeCompletion.enable": true,
     // "dart.flutterSdkPath": "/Users/udikav/fvm/default/bin",
     // "terminal.integrated.env.windows": {
     //     "PATH": "D:/flutter/flutter3.24.4;${env:PATH};"
