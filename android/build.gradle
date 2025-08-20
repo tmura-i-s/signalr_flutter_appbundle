@@ -28,7 +28,7 @@ apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android'
 
 android {
-    compileSdkVersion 30
+    compileSdkVersion 36
     namespace 'dev.asdevs.signalr_flutter_appbundle'
 
     compileOptions {
@@ -52,7 +52,7 @@ android {
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    implementation 'com.google.code.gson:gson:2.8.6'
+    implementation 'com.google.code.gson:gson:2.11.0'
     // compile files('libs/signalr-client-sdk.jar')
     // compile files('libs/signalr-client-sdk-android.jar')
     implementation files('libs/signalr-client-sdk.jar')

@@ -2,6 +2,7 @@ package dev.asdevs.signalr_flutter_appbundle
 
 import android.os.Handler
 import android.os.Looper
+import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
 import microsoft.aspnet.signalr.client.*
 import microsoft.aspnet.signalr.client.hubs.HubConnection
@@ -19,6 +20,7 @@ enum class CallMethod(val value: String) {
 }
 
 object SignalR {
+    lateinit var channel: MethodChannel
     private lateinit var connection: HubConnection
     private lateinit var hub: HubProxy
 
@@ -42,44 +44,44 @@ object SignalR {
             hubMethods.forEach { methodName ->
                 hub.on(methodName, { res ->
                     Handler(Looper.getMainLooper()).post {
-                        SignalRFlutterPlugin.channel.invokeMethod("NewMessage", listOf(methodName, res))
+                        channel.invokeMethod("NewMessage", listOf(methodName, res))
                     }
                 }, Any::class.java)
             }
 
             connection.connected {
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("ConnectionStatus", connection.state.name)
+                    channel.invokeMethod("ConnectionStatus", connection.state.name)
                 }
             }
 
             connection.reconnected {
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("ConnectionStatus", connection.state.name)
+                    channel.invokeMethod("ConnectionStatus", connection.state.name)
                 }
             }
 
             connection.reconnecting {
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("ConnectionStatus", connection.state.name)
+                    channel.invokeMethod("ConnectionStatus", connection.state.name)
                 }
             }
 
             connection.closed {
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("ConnectionStatus", connection.state.name)
+                    channel.invokeMethod("ConnectionStatus", connection.state.name)
                 }
             }
 
             connection.connectionSlow {
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("ConnectionStatus", "Slow")
+                    channel.invokeMethod("ConnectionStatus", "Slow")
                 }
             }
 
             connection.error { handler ->
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("ConnectionStatus", handler.localizedMessage)
+                    channel.invokeMethod("ConnectionStatus", handler.localizedMessage)
                 }
             }
 
@@ -132,7 +134,7 @@ object SignalR {
         try {
             hub.on(methodName, { res ->
                 Handler(Looper.getMainLooper()).post {
-                    SignalRFlutterPlugin.channel.invokeMethod("NewMessage", listOf(methodName, res))
+                    channel.invokeMethod("NewMessage", listOf(methodName, res))
                 }
             }, Any::class.java)
         } catch (ex: Exception) {
