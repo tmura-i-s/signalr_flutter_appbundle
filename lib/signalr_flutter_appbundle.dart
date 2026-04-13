@@ -66,7 +66,7 @@ class SignalR {
   }
 
   /// Try to Reconnect SignalR connection if it gets disconnected.
-  void reconnect() async {
+  Future<void> reconnect() async {
     try {
       await _channel.invokeMethod("reconnect");
     } on PlatformException catch (ex) {
@@ -79,7 +79,7 @@ class SignalR {
   }
 
   /// Stop SignalR connection
-  void stop() async {
+  Future<void> stop() async {
     try {
       await _channel.invokeMethod("stop");
     } on PlatformException catch (ex) {
@@ -107,7 +107,7 @@ class SignalR {
       "This method no longer works on iOS. For now it may work on Android but this will be removed later. Consider using constructor parameter [hubMethods]")
 
   /// Subscribe to a Hub method. Every subsequent message from server gets called on [hubCallback].
-  void subscribeToHubMethod(String methodName) async {
+  Future<void> subscribeToHubMethod(String methodName) async {
     try {
       await _channel.invokeMethod("listenToHubMethod", methodName);
     } on PlatformException catch (ex) {
@@ -120,9 +120,20 @@ class SignalR {
   }
 
   /// Invoke any server method with optional [arguments].
+  /// Arguments must be primitive types (String, int, double, bool, null).
   Future<T?> invokeMethod<T>(String methodName,
       {List<dynamic>? arguments}) async {
     try {
+      // Reject complex types - only primitives are supported by native SignalR
+      if (arguments != null) {
+        for (final arg in arguments) {
+          if (arg != null && arg is! String && arg is! num && arg is! bool) {
+            throw ArgumentError(
+                'Arguments must be primitive types (String, int, double, bool). Got: ${arg.runtimeType}');
+          }
+        }
+      }
+
       final result = await _channel.invokeMethod<T>(
           "invokeServerMethod", <String, dynamic>{
         'methodName': methodName,
@@ -143,13 +154,13 @@ class SignalR {
     _channel.setMethodCallHandler((call) {
       switch (call.method) {
         case CONNECTION_STATUS:
-          statusChangeCallback!(call.arguments);
+          statusChangeCallback?.call(call.arguments);
           break;
         case NEW_MESSAGE:
           if (call.arguments is List) {
-            hubCallback!(call.arguments[0], call.arguments[1]);
+            hubCallback?.call(call.arguments[0], call.arguments[1]);
           } else {
-            hubCallback!("", call.arguments);
+            hubCallback?.call("", call.arguments);
           }
           break;
         default:

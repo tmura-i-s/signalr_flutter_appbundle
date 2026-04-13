@@ -90,7 +90,8 @@ class SignalRWrapper {
 
   func reconnect(result: @escaping FlutterResult) {
     if let connection = self.connection {
-      connection.connect()
+      connection.start()
+      result(true)
     } else {
       result(FlutterError(code: "Error", message: "SignalR Connection not found or null", details: "Start SignalR connection first"))
     }
@@ -99,6 +100,7 @@ class SignalRWrapper {
   func stop(result: @escaping FlutterResult) {
     if let connection = self.connection {
       connection.stop()
+      result(true)
     } else {
       result(FlutterError(code: "Error", message: "SignalR Connection not found or null", details: "Start SignalR connection first"))
     }

@@ -101,7 +101,12 @@ object SignalR {
 
     fun reconnect(result: Result) {
         try {
+            if (!this::connection.isInitialized) {
+                result.error("Error", "SignalR connection not initialized. Call connectToServer first.", null)
+                return
+            }
             connection.start()
+            result.success(true)
         } catch (ex: Exception) {
             result.error(ex.localizedMessage, ex.stackTrace.toString(), null)
         }
@@ -109,7 +114,12 @@ object SignalR {
 
     fun stop(result: Result) {
         try {
+            if (!this::connection.isInitialized) {
+                result.error("Error", "SignalR connection not initialized. Call connectToServer first.", null)
+                return
+            }
             connection.stop()
+            result.success(true)
         } catch (ex: Exception) {
             result.error(ex.localizedMessage, ex.stackTrace.toString(), null)
         }
@@ -132,11 +142,16 @@ object SignalR {
 
     fun listenToHubMethod(methodName: String, result: Result) {
         try {
+            if (!this::hub.isInitialized) {
+                result.error("Error", "Hub not initialized. Call connectToServer first.", null)
+                return
+            }
             hub.on(methodName, { res ->
                 Handler(Looper.getMainLooper()).post {
                     channel.invokeMethod("NewMessage", listOf(methodName, res))
                 }
             }, Any::class.java)
+            result.success(true)
         } catch (ex: Exception) {
             result.error("Error", ex.localizedMessage, null)
         }
@@ -144,6 +159,10 @@ object SignalR {
 
     fun invokeServerMethod(methodName: String, args: List<Any>, result: Result) {
         try {
+            if (!this::hub.isInitialized) {
+                result.error("Error", "Hub not initialized. Call connectToServer first.", null)
+                return
+            }
             val res: SignalRFuture<Any> = hub.invoke(Any::class.java, methodName, *args.toTypedArray())
 
             res.done { msg: Any? ->
