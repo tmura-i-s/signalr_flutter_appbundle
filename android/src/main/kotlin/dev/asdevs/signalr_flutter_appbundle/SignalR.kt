@@ -4,6 +4,7 @@ import android.os.Handler
 import android.os.Looper
 import io.flutter.plugin.common.MethodChannel
 import io.flutter.plugin.common.MethodChannel.Result
+import java.util.concurrent.atomic.AtomicBoolean
 import microsoft.aspnet.signalr.client.*
 import microsoft.aspnet.signalr.client.hubs.HubConnection
 import microsoft.aspnet.signalr.client.hubs.HubProxy
@@ -158,26 +159,36 @@ object SignalR {
     }
 
     fun invokeServerMethod(methodName: String, args: List<Any>, result: Result) {
+        // ensure MethodChannel.Result is replied to exactly once (done + onError can both fire)
+        val replied = AtomicBoolean(false)
         try {
             if (!this::hub.isInitialized) {
-                result.error("Error", "Hub not initialized. Call connectToServer first.", null)
+                if (replied.compareAndSet(false, true)) {
+                    result.error("Error", "Hub not initialized. Call connectToServer first.", null)
+                }
                 return
             }
             val res: SignalRFuture<Any> = hub.invoke(Any::class.java, methodName, *args.toTypedArray())
 
             res.done { msg: Any? ->
                 Handler(Looper.getMainLooper()).post {
-                    result.success(msg)
+                    if (replied.compareAndSet(false, true)) {
+                        result.success(msg)
+                    }
                 }
             }
 
             res.onError { throwable ->
                 Handler(Looper.getMainLooper()).post {
-                    result.error("Error", throwable.localizedMessage, null)
+                    if (replied.compareAndSet(false, true)) {
+                        result.error("Error", throwable.localizedMessage, null)
+                    }
                 }
             }
         } catch (ex: Exception) {
-            result.error("Error", ex.localizedMessage, null)
+            if (replied.compareAndSet(false, true)) {
+                result.error("Error", ex.localizedMessage, null)
+            }
         }
     }
 }
