@@ -2,16 +2,13 @@ group 'dev.asdevs.signalr_flutter_appbundle'
 version '1.0-SNAPSHOT'
 
 buildscript {
-    ext.kotlin_version = '2.1.0'
+    ext.kotlin_version = '2.3.20'
     repositories {
         google()
-        jcenter()
         mavenCentral()
     }
 
     dependencies {
-        // classpath 'com.android.tools.build:gradle:4.1.3'
-        // classpath 'com.android.tools.build:gradle:7.3.1'
         classpath 'com.android.tools.build:gradle:8.7.3'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
@@ -25,33 +22,38 @@ rootProject.allprojects {
 }
 
 apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
+
+// Do NOT apply the Kotlin Gradle Plugin here. Flutter's tooling (3.44+) scans this
+// file and applies Kotlin itself when no KGP reference is present (built-in Kotlin
+// migration, see https://docs.flutter.dev/release/breaking-changes/migrate-to-built-in-kotlin).
 
 android {
-    compileSdkVersion 36
+    compileSdk = 36
     namespace 'dev.asdevs.signalr_flutter_appbundle'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_21 // java version
         targetCompatibility JavaVersion.VERSION_21 // java version
     }
-    kotlinOptions {
-        jvmTarget = 21 // java version
-    }
 
     sourceSets {
         main.java.srcDirs += 'src/main/kotlin'
     }
     defaultConfig {
-        minSdkVersion 26
+        minSdk = 26
     }
-    lintOptions {
+    lint {
         disable 'InvalidPackage'
     }
 }
 
+kotlin {
+    compilerOptions {
+        jvmTarget = org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21
+    }
+}
+
 dependencies {
-    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation 'com.google.code.gson:gson:2.12.0'
     // compile files('libs/signalr-client-sdk.jar')
     // compile files('libs/signalr-client-sdk-android.jar')
